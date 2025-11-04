@@ -1,0 +1,25 @@
+display_information:
+  name: Hello World Bot
+  description: A simple bot that responds with Hello World
+  background_color: "#2c2d30"
+features:
+  bot_user:
+    display_name: Hello World Bot
+    always_online: true
+oauth_config:
+  scopes:
+    bot:
+      - channels:history
+      - chat:write
+      - app_mentions:read
+      - im:history
+settings:
+  event_subscriptions:
+    request_url: https://YOUR_RAILWAY_URL/slack/events
+    bot_events:
+      - message.channels
+      - message.im
+      - app_mention
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false
