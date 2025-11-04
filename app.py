@@ -28,6 +28,9 @@ def handle_app_mentions(body, say, logger):
 def update_home_tab(client, event, logger):
     pass
 
+# Create WSGI app for gunicorn
+flask_app = app.to_wsgi_app()
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 3000))
     app.start(port=port)
