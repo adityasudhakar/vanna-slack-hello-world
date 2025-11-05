@@ -9,17 +9,7 @@ slack_app = App(
     signing_secret=os.environ.get("SLACK_SIGNING_SECRET")
 )
 
-# Respond to any message event
-@slack_app.event("message")
-def handle_message_events(body, say, logger):
-    # Ignore bot messages to prevent infinite loops
-    if body["event"].get("bot_id"):
-        return
-    
-    # Respond with Hello World
-    say("Hello World! 👋")
-
-# Respond to app mentions
+# Respond to app mentions only
 @slack_app.event("app_mention")
 def handle_app_mentions(body, say, logger):
     say("Hello World! 👋")
