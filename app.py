@@ -56,11 +56,8 @@ def handle_app_mentions(body, say, client):
     user_message = body["event"]["text"]
     channel = body["event"]["channel"]
 
-    # Post a temporary "thinking" message
-    thinking_msg = client.chat_postMessage(
-        channel=channel,
-        text="Analyzing your request..."
-    )
+    # Show typing indicator
+    client.conversations_typing(channel=channel)
 
     # Call OpenAI to generate a response
     response = openai_client.chat.completions.create(
@@ -98,12 +95,6 @@ Here's this week's performance:
     )
 
     llm_response = response.choices[0].message.content
-
-    # Delete the thinking message
-    client.chat_delete(
-        channel=channel,
-        ts=thinking_msg["ts"]
-    )
 
     # Format and send the actual response
     say(format_llm_response(llm_response))
