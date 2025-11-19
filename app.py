@@ -56,8 +56,11 @@ def handle_app_mentions(body, say, client):
     user_message = body["event"]["text"]
     channel = body["event"]["channel"]
 
-    # Show typing indicator
-    client.conversations_typing(channel=channel)
+    # Post a placeholder message with typing effect
+    placeholder = client.chat_postMessage(
+        channel=channel,
+        text=":thought_balloon: _Thinking..._"
+    )
 
     # Call OpenAI to generate a response
     response = openai_client.chat.completions.create(
@@ -96,8 +99,12 @@ Here's this week's performance:
 
     llm_response = response.choices[0].message.content
 
-    # Format and send the actual response
-    say(format_llm_response(llm_response))
+    # Update the placeholder with the actual response
+    client.chat_update(
+        channel=channel,
+        ts=placeholder["ts"],
+        **format_llm_response(llm_response)
+    )
 
 # Initialize Flask app
 flask_app = Flask(__name__)
