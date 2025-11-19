@@ -17,9 +17,7 @@ slack_app = App(
 def format_llm_response(llm_text):
     """
     Convert LLM response to Slack Block Kit format.
-    Expects LLM to return text in this format:
-    HEADER: <header text>
-    <body text with *bold* and bullet points>
+    Parses HEADER: prefix for header block, rest becomes mrkdwn body.
     """
     lines = llm_text.strip().split('\n', 1)
 
