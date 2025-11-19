@@ -51,7 +51,7 @@ def format_llm_response(llm_text):
     return {"blocks": blocks}
 
 @slack_app.event("app_mention")
-def handle_app_mentions(body, say, client):
+def handle_app_mentions(body, client):
     # Get the user's message and channel
     user_message = body["event"]["text"]
     channel = body["event"]["channel"]
