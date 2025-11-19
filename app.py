@@ -12,10 +12,24 @@ slack_app = App(
 # Respond to app mentions only
 @slack_app.event("app_mention")
 def handle_app_mentions(body, say, logger):
-    say("""## Profend Sales by Month in 2025
-Here's the analysis of Profend sales throughout 2025:
-**Key Insights:**
-- **Highest performing months:** March ($1.42M) and July ($1.42M)""")
+    say({
+        "blocks": [
+            {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": "Profend Sales by Month in 2025"
+                }
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "Here's the analysis of Profend sales throughout 2025:\n\n*Key Insights:*\n• *Highest performing months:* March ($1.42M) and July ($1.42M)"
+                }
+            }
+        ]
+    })
 
 # Initialize Flask app
 flask_app = Flask(__name__)
