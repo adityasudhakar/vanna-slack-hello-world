@@ -2,6 +2,10 @@ import os
 from slack_bolt import App
 from slack_bolt.adapter.flask import SlackRequestHandler
 from flask import Flask, request
+from openai import OpenAI
+
+# Initialize OpenAI client
+openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 # Initialize Slack app
 slack_app = App(
@@ -10,26 +14,88 @@ slack_app = App(
 )
 
 # Respond to app mentions only
+def format_llm_response(llm_text):
+    """
+    Convert LLM response to Slack Block Kit format.
+    Expects LLM to return text in this format:
+    HEADER: <header text>
+    <body text with *bold* and bullet points>
+    """
+    lines = llm_text.strip().split('\n', 1)
+
+    blocks = []
+
+    # Check if first line is a header
+    if lines[0].startswith('HEADER:'):
+        header_text = lines[0].replace('HEADER:', '').strip()
+        blocks.append({
+            "type": "header",
+            "text": {
+                "type": "plain_text",
+                "text": header_text
+            }
+        })
+        body_text = lines[1] if len(lines) > 1 else ""
+    else:
+        # No header, treat everything as body
+        body_text = llm_text
+
+    # Add body as mrkdwn section
+    if body_text.strip():
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": body_text.strip()
+            }
+        })
+
+    return {"blocks": blocks}
+
 @slack_app.event("app_mention")
-def handle_app_mentions(body, say, logger):
-    say({
-        "blocks": [
+def handle_app_mentions(body, say):
+    # Get the user's message
+    user_message = body["event"]["text"]
+
+    # Call OpenAI to generate a response
+    response = openai_client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
             {
-                "type": "header",
-                "text": {
-                    "type": "plain_text",
-                    "text": "Profend Sales by Month in 2025"
-                }
+                "role": "system",
+                "content": """You are a business analyst providing sales and business updates.
+Generate fake but realistic sales data and business insights.
+
+Format your response as follows:
+- First line: "HEADER: <your title>" (e.g., "HEADER: Weekly Sales Report")
+- Rest: Body text using Slack mrkdwn format
+  - Use *bold* for emphasis (e.g., *Revenue Growth:* 15%)
+  - Use • for bullets
+  - Include specific numbers and insights
+
+Example:
+HEADER: Q4 2025 Sales Update
+Here's this week's performance:
+
+*Revenue:* $2.3M (+12% vs last week)
+*Key Wins:*
+• Closed 3 enterprise deals worth $450K
+• Customer retention improved to 94%
+• New product line launched successfully"""
             },
             {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": "Here's the analysis of Profend sales throughout 2025:\n\n*Key Insights:*\n• *Highest performing months:* March ($1.42M) and July ($1.42M)"
-                }
+                "role": "user",
+                "content": user_message
             }
-        ]
-    })
+        ],
+        max_tokens=500,
+        temperature=0.7
+    )
+
+    llm_response = response.choices[0].message.content
+
+    # Format and send to Slack
+    say(format_llm_response(llm_response))
 
 # Initialize Flask app
 flask_app = Flask(__name__)
